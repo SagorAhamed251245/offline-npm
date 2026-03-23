@@ -1,0 +1,31 @@
+# Node.js dependencies
+node_modules/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# Build directories
+dist/
+build/
+package-lock.json
+*.tsbuildinfo
+
+# Next.js auto-generated TypeScript declaration
+next-env.d.ts
+# OS files
+.DS_Store
+Thumbs.db
+
+.next
+.env
+.env.local
+.env.production
+.env.development
+
+# SpecKit planning files
+specs/
+
+.claude/worktrees/

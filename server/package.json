@@ -1,0 +1,30 @@
+{
+  "name": "offline-npm-manager",
+  "version": "1.0.0",
+  "description": "Download npm packages online, install them offline later",
+  "main": "src/index.js",
+  "bin": {
+    "offline-npm": "./bin/offline-npm.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "prod": "node bin/offline-npm.js",
+    "test": "node test/test.js"
+  },
+  "keywords": [
+    "npm",
+    "offline",
+    "package-manager",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

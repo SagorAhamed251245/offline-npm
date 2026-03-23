@@ -1,0 +1,16 @@
+{
+  "name": "offline-npm-dashboard",
+  "version": "1.0.0",
+  "description": "React dashboard UI for Offline NPM Manager",
+  "private": true,
+  "scripts": {
+    "server": "cd server && npm start",
+    "client": "cd client && npm run dev",
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build": "cd client && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
