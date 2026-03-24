@@ -112,6 +112,19 @@ offline-npm remove <package>        # Remove from cache
 offline-npm rm lodash               # Alias
 ```
 
+**To use `offline-npm` globally:**
+
+```bash
+cd server
+npm install -g
+```
+
+Then use `offline-npm` from anywhere. Alternatively, run locally with:
+
+```bash
+node server/bin/offline-npm.js add express
+```
+
 **See [server/README.md](server/README.md) for detailed CLI usage.**
 
 ### 2. **REST API** (`server/src/index.js`)
@@ -318,6 +331,26 @@ npm run lint           # ESLint check
 ---
 
 ## Troubleshooting
+
+### Issue: "npm install failed" when trying to install offline
+
+**Cause**: Package dependencies were not cached. `npm install` needs all dependencies available.
+
+**Solution**: Always download packages WITH dependencies using `--deps`:
+
+```bash
+# While online, download with ALL dependencies
+offline-npm add express --deps
+offline-npm add react --deps
+
+# Then install (works offline)
+offline-npm install express
+offline-npm install react
+```
+
+Without `--deps`, only the package itself is cached, not its dependencies. When you try to install offline, npm has nothing to fetch dependencies from.
+
+---
 
 ### Issue: "Cannot resolve package" error in UI
 

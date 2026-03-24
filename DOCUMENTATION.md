@@ -74,17 +74,18 @@ Access at:
 ### CLI Quick Commands
 
 ```bash
-# Download a package
+# Install CLI globally first
+cd server && npm install -g
+
+# Then use from anywhere:
+offline-npm add express
+offline-npm list
+offline-npm install express
+offline-npm remove express
+
+# Or use locally without global install:
 node server/bin/offline-npm.js add express
-
-# List cached packages
 node server/bin/offline-npm.js list
-
-# Install from cache
-node server/bin/offline-npm.js install express
-
-# Remove from cache
-node server/bin/offline-npm.js remove express
 ```
 
 ---
@@ -144,6 +145,25 @@ offline-npm-dashboard/
 3. **UI** (`client/src/App.jsx`) - React dashboard
 
 All three share the same **storage** and **core modules**.
+
+### ⚠️ Critical: Download WITH Dependencies
+
+**For packages that have dependencies, you MUST use the `--deps` flag:**
+
+```bash
+# ✅ CORRECT - Downloads package + all dependencies
+offline-npm add express --deps
+
+# ❌ WRONG - Downloads only the package
+offline-npm add express   # Will fail on install offline!
+```
+
+**Why?** When you run `offline-npm install`, npm needs to resolve all dependencies. If the dependencies aren't cached, it tries to fetch them from npm registry, which fails offline.
+
+**Workflow:**
+
+1. **While online**: Download with deps → `offline-npm add package-name --deps`
+2. **Offline**: Install from cache → `offline-npm install package-name` (works!)
 
 ### Shared Storage
 

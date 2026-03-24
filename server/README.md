@@ -47,6 +47,29 @@ cd server
 npm install
 ```
 
+### Install CLI Globally (Optional)
+
+Make `offline-npm` command available anywhere:
+
+```bash
+cd server
+npm install -g
+```
+
+Now you can use the CLI from any directory:
+
+```bash
+offline-npm add express
+offline-npm list
+offline-npm install react
+```
+
+**Note:** If you prefer not to install globally, use the local path:
+
+```bash
+node /path/to/server/bin/offline-npm.js add express
+```
+
 ---
 
 ## Quick Start
@@ -175,7 +198,37 @@ offline-npm add react -s /custom/path        # Custom storage dir
 
 ---
 
-### `list` - Show all cached packages
+### `install` - Install a package from cache
+
+Installs a cached package to `node_modules/`. The package must be cached first.
+
+```bash
+offline-npm install <package>                    # Latest cached version
+offline-npm install react@17.0.2                 # Specific version
+offline-npm install @babel/core                  # Scoped package
+
+# With options
+offline-npm install express --save               # Add to package.json
+offline-npm install lodash --save-dev            # Add to devDependencies
+```
+
+**Important:** For packages with dependencies, you must download them WITH dependencies first:
+
+```bash
+# Download WITH dependencies (do this while online)
+offline-npm add express --deps                   # Caches express + all deps
+
+# Then install offline (works even without internet)
+offline-npm install express
+```
+
+**Options:**
+
+- `--save` - Add to `dependencies` in package.json
+- `--save-dev` - Add to `devDependencies` in package.json
+- `-s, --storage <path>` - Custom storage directory
+
+---
 
 ```bash
 offline-npm list                 # Show all packages
@@ -476,16 +529,17 @@ Commander.js-based CLI with subcommands.
 ## Example Workflow
 
 ```bash
-# ── Step 1: While online ──────────────────────────────────────────
-offline-npm add express@4.18.2 --deps      # Download express + deps
-offline-npm add lodash@4.17.21              # Just lodash
+# ── Step 1: While online - Download WITH dependencies ──────────────
+offline-npm add express@4.18.2 --deps      # IMPORTANT: download + all deps
+offline-npm add lodash@4.17.21              # (no deps needed for lodash)
 offline-npm add typescript@5.3.2
 offline-npm list                            # Verify all cached
 
 # ── Step 2: Go offline ────────────────────────────────────────────
 # Disconnect from internet, board a plane, enter a data center...
+# All package dependencies are already cached, so install will work
 
-# ── Step 3: Install from cache ───────────────────────────────────
+# ── Step 3: Install from cache (works offline!) ───────────────────
 mkdir my-project && cd my-project
 npm init -y
 
@@ -494,6 +548,13 @@ offline-npm install express@4.18.2 --save
 offline-npm install lodash@4.17.21 --save
 offline-npm install typescript@5.3.2 --save-dev
 ```
+
+**Key Points:**
+
+- Use `--deps` flag when adding packages that have dependencies
+- Without `--deps`, you'll only cache that single package
+- `install` requires all dependencies to be cached (use `--deps` on `add`)
+- Once dependencies are cached, `install` works completely offline
 
 ---
 

@@ -51,15 +51,22 @@ function pickVersion(cached, requestedVersion) {
 
 /**
  * Runs npm install with the .tgz file path as the target.
+ * Uses offline-friendly flags to prevent fetching from npm registry.
  */
 function runNpmInstall(tgzPath, saveFlag) {
-  const args = ["install", tgzPath];
+  const args = [
+    "install",
+    tgzPath,
+    "--prefer-offline", // Use cache first before fetching
+    "--no-audit", // Skip npm audit (requires network)
+  ];
   if (saveFlag === "save") args.push("--save");
   if (saveFlag === "save-dev") args.push("--save-dev");
 
   const result = spawnSync("npm", args, {
     encoding: "utf-8",
     stdio: "inherit",
+    shell: true, // Windows compatibility
   });
 
   return result.status === 0;
