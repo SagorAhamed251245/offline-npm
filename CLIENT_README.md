@@ -64,7 +64,7 @@ npm run dev
 This starts:
 
 - **API Server**: http://localhost:3001 (auto-proxied by Vite)
-- **React UI**: http://localhost:5174
+- **React UI**: http://localhost:5173
 
 ### Build for Production
 

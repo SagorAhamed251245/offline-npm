@@ -47,7 +47,7 @@ npm run dev
 This will start:
 
 - **API Server**: http://localhost:3001
-- **React UI**: http://localhost:5174
+- **React UI**: http://localhost:5173
 
 ---
 
@@ -55,7 +55,7 @@ This will start:
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│          React Dashboard (Port 5174)                │
+│          React Dashboard (Port 5173)                │
 │      Beautiful UI for package management           │
 │  - Add/Remove packages                             │
 │  - Search & Filter                                 │
@@ -221,7 +221,7 @@ npm run server
 ```bash
 # Online machine - download React ecosystem
 npm run server &
-npm run client  # Open http://localhost:5174
+npm run client  # Open http://localhost:5173
 
 # Use the dashboard to add:
 # - react
@@ -383,7 +383,7 @@ ls -la ~/.offline-npm-cache
 
 ### Issue: Port already in use
 
-**Cause**: Another process using port 3001 or 5174
+**Cause**: Another process using port 3001 or 5173
 
 **Solution**:
 

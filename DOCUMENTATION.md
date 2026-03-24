@@ -67,7 +67,7 @@ npm run dev
 Access at:
 
 - **API**: http://localhost:3001
-- **UI**: http://localhost:5174
+- **UI**: http://localhost:5173
 
 ---
 
