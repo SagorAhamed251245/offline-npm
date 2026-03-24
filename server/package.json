@@ -7,7 +7,7 @@
     "offline-npm": "./bin/offline-npm.js"
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "node src/index.js",
     "prod": "node bin/offline-npm.js",
     "test": "node test/test.js"
   },
@@ -20,6 +20,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "axios": "file:C:/Users/Sagor/.offline-npm-cache/axios/1.13.6/axios-1.13.6.tgz",
     "commander": "^11.1.0",
     "cors": "^2.8.6",
     "express": "^5.2.1"

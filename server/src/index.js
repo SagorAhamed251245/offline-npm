@@ -6,6 +6,9 @@ const { execSync, spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const { collectPackages } = require("./list");
+const { getStorageDir, readMeta, writeMeta } = require("./storage");
+const { parsePackage, packageLabel } = require("./parser");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -21,88 +24,24 @@ function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
 
-function readMeta(pkgDir) {
-  const metaPath = path.join(pkgDir, "meta.json");
-  if (!fs.existsSync(metaPath)) return null;
-  try {
-    return JSON.parse(fs.readFileSync(metaPath, "utf-8"));
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Walk the storage directory and return all cached packages.
- */
-function getAllPackages() {
-  ensureDir(STORAGE_DIR);
-  const results = [];
-
-  function walkVersions(pkgDir, pkgName) {
-    if (!fs.existsSync(pkgDir)) return;
-    for (const versionEntry of fs.readdirSync(pkgDir, {
-      withFileTypes: true,
-    })) {
-      if (!versionEntry.isDirectory()) continue;
-      const vDir = path.join(pkgDir, versionEntry.name);
-      const meta = readMeta(vDir);
-      if (!meta) continue;
-      const tgzPath = path.join(vDir, meta.tgz || "");
-      results.push({
-        id: `${pkgName}@${versionEntry.name}`,
-        name: pkgName,
-        version: versionEntry.name,
-        size: meta.size || 0,
-        sizeLabel: meta.size ? `${(meta.size / 1024).toFixed(1)} KB` : "?",
-        downloadedAt: meta.downloadedAt || null,
-        tgz: meta.tgz || null,
-        tgzPath,
-        status: tgzExists(tgzPath) ? "ready" : "missing",
-        hasDeps: meta.hasDeps || false,
-      });
-    }
-  }
-
-  for (const entry of fs.readdirSync(STORAGE_DIR, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    const fullPath = path.join(STORAGE_DIR, entry.name);
-    if (entry.name.startsWith("@")) {
-      // Scoped package: go one level deeper
-      for (const scopedEntry of fs.readdirSync(fullPath, {
-        withFileTypes: true,
-      })) {
-        if (!scopedEntry.isDirectory()) continue;
-        walkVersions(
-          path.join(fullPath, scopedEntry.name),
-          `${entry.name}/${scopedEntry.name}`,
-        );
-      }
-    } else {
-      walkVersions(fullPath, entry.name);
-    }
-  }
-
-  return results.sort(
-    (a, b) => new Date(b.downloadedAt) - new Date(a.downloadedAt),
-  );
-}
-
-function tgzExists(tgzPath) {
-  return tgzPath && fs.existsSync(tgzPath);
-}
-
 /**
  * Run a CLI command and return { success, stdout, stderr }
  */
 function runCommand(cmd, args) {
   return new Promise((resolve) => {
-    const proc = spawn(cmd, args, { encoding: "utf-8" });
+    const proc = spawn(cmd, args, {
+      shell: true, // Use shell on Windows so npm command is found
+      encoding: "utf-8",
+    });
     let stdout = "";
     let stderr = "";
     proc.stdout.on("data", (d) => (stdout += d));
     proc.stderr.on("data", (d) => (stderr += d));
     proc.on("close", (code) =>
       resolve({ success: code === 0, stdout, stderr, code }),
+    );
+    proc.on("error", (err) =>
+      resolve({ success: false, stdout, stderr: err.message, code: -1 }),
     );
   });
 }
@@ -112,7 +51,7 @@ function runCommand(cmd, args) {
 // GET /api/packages — list all cached packages
 app.get("/api/packages", (req, res) => {
   try {
-    const packages = getAllPackages();
+    const packages = collectPackages(STORAGE_DIR);
     res.json({ packages, storageDir: STORAGE_DIR });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -122,7 +61,7 @@ app.get("/api/packages", (req, res) => {
 // GET /api/stats — summary statistics
 app.get("/api/stats", (req, res) => {
   try {
-    const packages = getAllPackages();
+    const packages = collectPackages(STORAGE_DIR);
     const totalSize = packages.reduce((s, p) => s + (p.size || 0), 0);
     const uniqueNames = new Set(packages.map((p) => p.name)).size;
     res.json({
@@ -146,45 +85,75 @@ app.post("/api/packages/add", async (req, res) => {
   if (!pkg || !pkg.trim())
     return res.status(400).json({ error: "Package name required" });
 
-  const args = ["pack", pkg.trim(), "--pack-destination"];
-
-  // Resolve name/version to determine destination
-  const atIdx = pkg.startsWith("@") ? pkg.indexOf("@", 1) : pkg.indexOf("@");
-  const name = atIdx === -1 ? pkg.trim() : pkg.trim().slice(0, atIdx);
-  const version = atIdx === -1 ? "latest" : pkg.trim().slice(atIdx + 1);
-
-  // Resolve exact version first
-  let resolvedVersion = version;
+  const pkgInput = pkg.trim();
+  let name, version;
   try {
-    const vResult = execSync(
-      `npm view ${pkg.trim()} version --json 2>/dev/null`,
-      { encoding: "utf-8", timeout: 15000 },
-    )
-      .trim()
-      .replace(/"/g, "");
-    resolvedVersion = vResult || version;
-  } catch {
-    return res
-      .status(400)
-      .json({ error: `Cannot resolve package: ${pkg}. Are you online?` });
+    const parsed = parsePackage(pkgInput);
+    name = parsed.name;
+    version = parsed.version;
+  } catch (err) {
+    return res.status(400).json({ error: `Invalid package name: ${pkgInput}` });
   }
 
-  const destDir = path.join(STORAGE_DIR, ...name.split("/"), resolvedVersion);
+  // Let npm pack resolve the version - it handles 'latest' by itself
+  let resolvedVersion = version;
+  const destDir = path.join(STORAGE_DIR, ...name.split("/"), version);
   ensureDir(destDir);
 
+  // Run npm pack directly - npm will fetch and resolve the version
   const result = await runCommand("npm", [
     "pack",
-    `${name}@${resolvedVersion}`,
+    packageLabel(name, version),
     "--pack-destination",
     destDir,
   ]);
 
   if (!result.success) {
-    return res.status(500).json({ error: result.stderr || "npm pack failed" });
+    console.error(`[API] npm pack error: ${result.stderr || result.stdout}`);
+    return res.status(500).json({
+      error: result.stderr
+        ? result.stderr.substring(0, 200)
+        : `Cannot resolve or download package: ${pkgInput}. Are you online?`,
+    });
   }
 
-  const tgzName = result.stdout.trim().split("\n").pop().trim();
-  const tgzPath = path.join(destDir, tgzName);
+  // Extract the filename from npm pack output
+  const lines = result.stdout
+    .trim()
+    .split("\n")
+    .filter((l) => l.trim() && !l.includes("npm"));
+  const tgzName = lines.pop().trim();
+  if (!tgzName) {
+    return res.status(500).json({ error: "npm pack produced no output" });
+  }
+
+  // Now we know the actual version from npm pack output (e.g., "react-19.2.4.tgz")
+  const versionMatch = tgzName.match(/@?[\w-]+-([\w.]+)\.tgz$/);
+  if (versionMatch) {
+    resolvedVersion = versionMatch[1];
+    // Rename to proper directory if needed
+    const actualDestDir = path.join(
+      STORAGE_DIR,
+      ...name.split("/"),
+      resolvedVersion,
+    );
+    if (actualDestDir !== destDir) {
+      ensureDir(actualDestDir);
+      const oldTgzPath = path.join(destDir, tgzName);
+      const newTgzPath = path.join(actualDestDir, tgzName);
+      fs.renameSync(oldTgzPath, newTgzPath);
+      // Clean up old directory if empty
+      try {
+        const files = fs.readdirSync(destDir);
+        if (!files.length) fs.rmdirSync(destDir);
+      } catch {}
+    }
+  }
+
+  const tgzPath = path.join(
+    path.join(STORAGE_DIR, ...name.split("/"), resolvedVersion),
+    tgzName,
+  );
   const stats = fs.existsSync(tgzPath) ? fs.statSync(tgzPath) : null;
 
   const meta = {
@@ -196,10 +165,12 @@ app.post("/api/packages/add", async (req, res) => {
     downloadedAt: new Date().toISOString(),
     hasDeps: deps,
   };
-  fs.writeFileSync(
-    path.join(destDir, "meta.json"),
-    JSON.stringify(meta, null, 2),
+  const finalDestDir = path.join(
+    STORAGE_DIR,
+    ...name.split("/"),
+    resolvedVersion,
   );
+  writeMeta(finalDestDir, meta);
 
   res.json({
     success: true,

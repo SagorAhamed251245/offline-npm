@@ -7,6 +7,7 @@ const log = require("../src/logger");
 
 /**
  * Walks the storage directory and collects all cached packages.
+ * Returns data in API format suitable for both CLI and REST endpoints.
  */
 function collectPackages(storageDir) {
   const results = [];
@@ -48,22 +49,28 @@ function collectPackages(storageDir) {
       const versionDir = path.join(pkgDir, entry.name);
       const meta = readMeta(versionDir);
       if (meta) {
-        const tgzExists = fs.existsSync(path.join(versionDir, meta.tgz || ""));
+        const tgzPath = path.join(versionDir, meta.tgz || "");
+        const tgzExists = fs.existsSync(tgzPath);
         results.push({
-          Package: pkgName,
-          Version: entry.name,
-          Size: meta.size ? `${(meta.size / 1024).toFixed(1)} KB` : "?",
-          Downloaded: meta.downloadedAt
-            ? new Date(meta.downloadedAt).toLocaleString()
-            : "?",
-          Status: tgzExists ? "✔ ready" : "✖ missing",
+          id: `${pkgName}@${entry.name}`,
+          name: pkgName,
+          version: entry.name,
+          size: meta.size || 0,
+          sizeLabel: meta.size ? `${(meta.size / 1024).toFixed(1)} KB` : "?",
+          downloadedAt: meta.downloadedAt || null,
+          tgz: meta.tgz || null,
+          tgzPath,
+          status: tgzExists ? "ready" : "missing",
+          hasDeps: meta.hasDeps || false,
         });
       }
     }
   }
 
   walk(storageDir, []);
-  return results;
+  return results.sort(
+    (a, b) => new Date(b.downloadedAt) - new Date(a.downloadedAt),
+  );
 }
 
 /**
@@ -86,11 +93,22 @@ async function listPackages(options) {
     return;
   }
 
-  log.table(packages);
+  // Format for CLI display
+  const displayTable = packages.map((p) => ({
+    Package: p.name,
+    Version: p.version,
+    Size: p.sizeLabel,
+    Downloaded: p.downloadedAt
+      ? new Date(p.downloadedAt).toLocaleString()
+      : "?",
+    Status: p.status === "ready" ? "✔ ready" : "✖ missing",
+  }));
+
+  log.table(displayTable);
   console.log("");
   log.success(
     `${packages.length} package version${packages.length === 1 ? "" : "s"} in cache.`,
   );
 }
 
-module.exports = { listPackages };
+module.exports = { listPackages, collectPackages };

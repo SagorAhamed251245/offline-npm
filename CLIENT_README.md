@@ -493,32 +493,13 @@ client/
     ├── hooks/
     │   └── usePackages.jsx   # Package management hook
     └── components/
+        ├── App.jsx
         ├── AddPackageModal.jsx
         ├── EmptyState.jsx
         ├── PackageCard.jsx
         ├── SearchBar.jsx
         └── StatsBar.jsx
 ```
-
----
-
-## API Reference
-
-| Method   | Endpoint                       | Description                   |
-| -------- | ------------------------------ | ----------------------------- |
-| `GET`    | `/api/packages`                | List all cached packages      |
-| `GET`    | `/api/stats`                   | Summary stats (count, size)   |
-| `POST`   | `/api/packages/add`            | Download package via npm pack |
-| `POST`   | `/api/packages/install`        | Install from local cache      |
-| `DELETE` | `/api/packages/:name/:version` | Remove from cache             |
-
----
-
-## Requirements
-
-- Node.js ≥ 16
-- npm in PATH
-- Internet access for API server (to fetch packages from npm registry)
 
 ---
 
@@ -530,5 +511,5 @@ MIT
 
 ## More Information
 
-- [Main README](../README.md) - Project overview
-- [Server README](../server/README.md) - CLI & API documentation
+- [Main README](README.md) - Project overview
+- [Server README](server/README.md) - CLI & API documentation

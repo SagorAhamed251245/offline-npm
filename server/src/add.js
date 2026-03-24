@@ -48,18 +48,29 @@ function getDependencies(name, version) {
  * Returns the path of the downloaded .tgz file.
  */
 function npmPack(pkgLabel, destDir) {
-  const result = spawnSync(
-    "npm",
-    ["pack", pkgLabel, "--pack-destination", destDir],
-    { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] },
-  );
-
-  if (result.status !== 0) {
-    throw new Error(result.stderr || `npm pack failed for ${pkgLabel}`);
+  // Ensure destination directory exists
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
   }
 
-  const tgzName = result.stdout.trim().split("\n").pop().trim();
-  return path.join(destDir, tgzName);
+  try {
+    const cmd = `npm pack ${pkgLabel} --pack-destination "${destDir}"`;
+    const output = execSync(cmd, { encoding: "utf-8" });
+    const lines = output
+      .trim()
+      .split("\n")
+      .filter((l) => l.trim() && !l.includes("npm"));
+    const tgzName = lines.pop().trim();
+
+    if (!tgzName) {
+      throw new Error(`No output from npm pack for ${pkgLabel}`);
+    }
+
+    return path.join(destDir, tgzName);
+  } catch (err) {
+    log.error(`npm pack failed: ${err.message}`);
+    throw err;
+  }
 }
 
 /**
