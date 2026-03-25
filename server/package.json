@@ -1,6 +1,6 @@
 {
   "name": "offline-npm-manager",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Download npm packages online, install them offline later",
   "bin": {
     "offline-npm": "./dist/cli.cjs"
