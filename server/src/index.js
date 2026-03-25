@@ -45,7 +45,95 @@ function runCommand(cmd, args) {
     );
   });
 }
+function normalizeResolvedUrl(fileUri) {
+  if (typeof fileUri !== "string" || !fileUri.startsWith("file:")) return null;
 
+  let absolute = fileUri.replace(/^file:\/\//, "").replace(/^file:/, "");
+  absolute = decodeURIComponent(absolute).replace(/\\/g, "/");
+
+  const marker = ".offline-npm-cache/";
+  const idx = absolute.indexOf(marker);
+  if (idx === -1) return null;
+
+  const subpath = absolute.slice(idx + marker.length);
+  const parts = subpath.split("/").filter(Boolean);
+
+  let packageName;
+  let version;
+  if (parts[0].startsWith("@")) {
+    if (parts.length < 4) return null;
+    packageName = `${parts[0]}/${parts[1]}`;
+    version = parts[2];
+  } else {
+    if (parts.length < 3) return null;
+    packageName = parts[0];
+    version = parts[1];
+  }
+
+  const baseName = packageName.includes("/")
+    ? packageName.split("/").pop()
+    : packageName;
+  const tarballName = `${baseName}-${version}.tgz`;
+
+  return `https://registry.npmjs.org/${packageName}/-/${tarballName}`;
+}
+
+function sanitizePackageLock() {
+  const lockFile = path.resolve("package-lock.json");
+  if (!fs.existsSync(lockFile)) return;
+
+  try {
+    const lockData = JSON.parse(fs.readFileSync(lockFile, "utf-8"));
+
+    function sanitizeNode(node) {
+      if (!node || typeof node !== "object") return;
+      if (node.resolved && typeof node.resolved === "string") {
+        const normalized = normalizeResolvedUrl(node.resolved);
+        if (normalized) node.resolved = normalized;
+      }
+      if (node.dependencies && typeof node.dependencies === "object") {
+        for (const depName of Object.keys(node.dependencies)) {
+          sanitizeNode(node.dependencies[depName]);
+        }
+      }
+    }
+
+    if (lockData.packages && typeof lockData.packages === "object") {
+      for (const pkgPath of Object.keys(lockData.packages)) {
+        sanitizeNode(lockData.packages[pkgPath]);
+      }
+    }
+
+    if (lockData.dependencies && typeof lockData.dependencies === "object") {
+      sanitizeNode(lockData.dependencies);
+    }
+
+    fs.writeFileSync(lockFile, JSON.stringify(lockData, null, 2), "utf-8");
+  } catch (err) {
+    console.warn(`Could not sanitize package-lock.json: ${err.message}`);
+  }
+}
+
+function sanitizePackageJson(name, version) {
+  const pkgJsonPath = path.resolve("package.json");
+  if (!fs.existsSync(pkgJsonPath)) return;
+
+  try {
+    const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, "utf-8"));
+    ["dependencies", "devDependencies"].forEach((section) => {
+      if (!pkgJson[section]) return;
+      if (
+        pkgJson[section][name] &&
+        pkgJson[section][name].startsWith("file:")
+      ) {
+        pkgJson[section][name] = version;
+      }
+    });
+    fs.writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2), "utf-8");
+  } catch (err) {
+    console.warn(`Could not sanitize package.json: ${err.message}`);
+  }
+}
 // ── Routes ────────────────────────────────────────────────────────────────────
 
 // GET /api/packages — list all cached packages
@@ -222,6 +310,9 @@ app.post("/api/packages/install", async (req, res) => {
       .status(500)
       .json({ error: result.stderr || "npm install failed" });
   }
+
+  sanitizePackageJson(name, targetVersion);
+  sanitizePackageLock();
 
   res.json({
     success: true,
