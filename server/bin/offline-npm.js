@@ -3,10 +3,10 @@
 "use strict";
 
 const { program } = require("commander");
-const { addPackage } = require("../src/add");
-const { installPackage } = require("../src/install");
-const { listPackages } = require("../src/list");
-const { removePackage } = require("../src/remove");
+const { addPackage } = require("../src/add.js");
+const { installPackage } = require("../src/install.js");
+const { listPackages } = require("../src/list.js");
+const { removePackage } = require("../src/remove.js");
 const { version } = require("../package.json");
 
 program

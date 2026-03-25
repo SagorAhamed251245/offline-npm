@@ -1,31 +1,21 @@
-# 📦 Offline NPM Manager - Server & CLI
+# 📦 Offline NPM Manager - CLI Tool
 
-Server component providing both **CLI tool** (`offline-npm` command) and **REST API (Express)** for managing offline npm packages.
-
-This is the core backend - handles package downloads, caching, dependency resolution, and provides both command-line and HTTP access.
+A command-line tool for downloading npm packages when online and installing them offline later.
 
 ---
 
 ## Features
 
-✅ **CLI Commands** - Add, install, list, and remove packages from terminal  
-✅ **REST API** - Full HTTP endpoints for programmatic access  
+✅ **Add Packages** - Download packages and dependencies for offline use  
+✅ **Install Packages** - Install from local cache without internet  
+✅ **List Packages** - View all cached packages  
+✅ **Remove Packages** - Clean up cached packages  
 ✅ **Dependency Management** - Automatically cache package dependencies  
 ✅ **Smart Caching** - Detect already-cached packages  
 ✅ **Scoped Packages** - Full support for `@scope/package` naming  
 ✅ **Cross-Platform** - Works on Windows, macOS, and Linux  
 ✅ **Version Control** - Store and manage multiple versions  
 ✅ **Real-time Feedback** - Progress indicators and error messages
-
----
-
-## Technology Stack
-
-- **Node.js** - JavaScript runtime
-- **Express.js** - REST API framework (port 3001)
-- **Commander.js** - CLI argument parser
-- **npm** - Package downloads and installation
-- **Native modules** - fs, path, spawn (no external dependencies for core logic)
 
 ---
 
@@ -36,75 +26,128 @@ This is the core backend - handles package downloads, caching, dependency resolu
 - **Node.js** 16 or higher
 - **npm** 8 or higher
 
-### Setup
+### Install Globally
 
 ```bash
-# From the project root
-npm run install:all
-
-# Or just the server
-cd server
-npm install
+npm install -g offline-npm-manager
 ```
 
-### Install CLI Globally (Optional)
+This installs the `offline-npm` command globally.
 
-Make `offline-npm` command available anywhere:
+### Offline Installation
 
-```bash
-cd server
-npm install -g
-```
-
-Now you can use the CLI from any directory:
+If installing offline, ensure all dependencies are available locally:
 
 ```bash
-offline-npm add express
-offline-npm list
-offline-npm install react
-```
-
-**Note:** If you prefer not to install globally, use the local path:
-
-```bash
-node /path/to/server/bin/offline-npm.js add express
+npm install -g offline-npm-manager --offline
 ```
 
 ---
 
-## Quick Start
+## Usage
 
-### Start the Server
+### Add a Package
+
+Download a package and store it locally (requires internet):
 
 ```bash
-# Enable both CLI and API
-npm run server
-# or
-cd server && npm start
+offline-npm add <package>
 ```
 
-This will:
+Options:
 
-- Start Express API on `http://localhost:3001`
-- CLI tool ready for immediate use
-- Keep npm registry available for downloads
-- Use default cache: `~/.offline-npm-cache/`
+- `-d, --deps`: Also download all dependencies recursively
+- `-s, --storage <path>`: Custom storage directory
 
-### Use the CLI
+Example:
 
 ```bash
-# Add a package to cache
-node bin/offline-npm.js add express
+offline-npm add axios
+offline-npm add react --deps
+```
 
-# List all cached packages
-node bin/offline-npm.js list
+### Install a Package
+
+Install a package from local offline storage:
+
+```bash
+offline-npm install <package>
+```
+
+Options:
+
+- `-s, --storage <path>`: Custom storage directory
+- `--save`: Add to package.json dependencies
+- `--save-dev`: Add to package.json devDependencies
+
+Example:
+
+```bash
+offline-npm install axios --save
+```
+
+### List Packages
+
+List all locally stored packages:
+
+```bash
+offline-npm list
+```
+
+Options:
+
+- `-s, --storage <path>`: Custom storage directory
+
+### Remove a Package
+
+Remove a package from local offline storage:
+
+```bash
+offline-npm remove <package>
+```
+
+Options:
+
+- `-s, --storage <path>`: Custom storage directory
+
+---
+
+## Storage
+
+By default, packages are stored in:
+
+- **Windows**: `%USERPROFILE%\.offline-npm-cache`
+- **macOS/Linux**: `~/.offline-npm-cache`
+
+You can override this with the `-s` option.
+
+---
+
+## Uninstall
+
+When you uninstall the package:
+
+```bash
+npm uninstall -g offline-npm-manager
+```
+
+This will automatically remove the cache directory and all stored packages.
+
+---
+
+## License
+
+MIT
 
 # Install from cache
+
 node bin/offline-npm.js install react
 
 # Remove from cache
+
 node bin/offline-npm.js remove lodash
-```
+
+````
 
 ### Check the API
 
@@ -116,7 +159,7 @@ curl http://localhost:3001/api/packages
 curl -X POST http://localhost:3001/api/packages/add \
   -H "Content-Type: application/json" \
   -d '{"package":"lodash"}'
-```
+````
 
 ---
 

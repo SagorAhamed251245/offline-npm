@@ -2,13 +2,12 @@
   "name": "offline-npm-manager",
   "version": "1.0.0",
   "description": "Download npm packages online, install them offline later",
-  "main": "src/index.js",
   "bin": {
-    "offline-npm": "./bin/offline-npm.js"
+    "offline-npm": "./dist/cli.cjs"
   },
   "scripts": {
-    "start": "node src/index.js",
-    "prod": "node bin/offline-npm.js",
+    "build": "esbuild bin/offline-npm.js --bundle --platform=node --format=cjs --outfile=dist/cli.cjs --external:commander",
+    "prepublishOnly": "npm run build",
     "test": "node test/test.js"
   },
   "keywords": [
@@ -19,13 +18,18 @@
   ],
   "author": "",
   "license": "MIT",
+  "files": [
+    "bin",
+    "dist"
+  ],
   "dependencies": {
-    "axios": "file:C:/Users/Sagor/.offline-npm-cache/axios/1.13.6/axios-1.13.6.tgz",
-    "commander": "^11.1.0",
-    "cors": "^2.8.6",
-    "express": "^5.2.1"
+    "commander": "^11.1.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.19.0"
   },
   "engines": {
     "node": ">=16.0.0"
-  }
+  },
+  "postuninstall": "node -e \"const fs=require('fs');const path=require('path');const os=require('os');const dir=path.join(os.homedir(),'.offline-npm-cache');if(fs.existsSync(dir))fs.rmSync(dir,{recursive:true,force:true});\""
 }
