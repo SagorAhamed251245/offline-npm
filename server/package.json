@@ -1,6 +1,6 @@
 {
   "name": "offline-npm-manager",
-  "version": "1.0.3",
+  "version": "1.0.0",
   "description": "Download npm packages online, install them offline later",
   "bin": {
     "offline-npm": "./dist/cli.cjs"
@@ -8,15 +8,24 @@
   "scripts": {
     "build": "esbuild bin/offline-npm.js --bundle --platform=node --format=cjs --outfile=dist/cli.cjs --external:commander",
     "prepublishOnly": "npm run build",
-    "test": "node test/test.js"
+    "test": "node test/test.js",
+    "dev": "node ./bin/offline-npm.js",
+    "start": "npm run dev"
   },
   "keywords": [
     "npm",
     "offline",
     "package-manager",
-    "cli"
+    "cli",
+    "offline-package-manager",
+    "offline-install",
+    "npm-cache",
+    "node-cli",
+    "dependency-cache",
+    "dependency-manager",
+    "offline-first"
   ],
-  "author": "",
+  "author": "Sagor Ahamed",
   "license": "MIT",
   "files": [
     "bin",
@@ -31,5 +40,28 @@
   "engines": {
     "node": ">=16.0.0"
   },
-  "postuninstall": "node -e \"const fs=require('fs');const path=require('path');const os=require('os');const dir=path.join(os.homedir(),'.offline-npm-cache');if(fs.existsSync(dir))fs.rmSync(dir,{recursive:true,force:true});\""
+  "postuninstall": "node -e \"const fs=require('fs');const path=require('path');const os=require('os');const dir=path.join(os.homedir(),'.offline-npm-cache');if(fs.existsSync(dir))fs.rmSync(dir,{recursive:true,force:true});\"",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SagorAhamed251245/offline-npm-manager.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SagorAhamed251245/offline-npm-manager/issues"
+  },
+  "homepage": "https://github.com/SagorAhamed251245",
+  "publishConfig": {
+    "access": "public"
+  },
+  "contributors": [
+    {
+      "name": "Sagor Ahamed",
+      "url": "https://github.com/SagorAhamed251245"
+    }
+  ],
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/SagorAhamed251245"
+    }
+  ]
 }

@@ -110,6 +110,7 @@ function normalizeResolvedUrl(fileUri) {
   return `https://registry.npmjs.org/${packageName}/-/${tarballName}`;
 }
 
+function normalizeDependency() {}
 function sanitizePackageLock() {
   const lockFile = path.resolve("package-lock.json");
   if (!fs.existsSync(lockFile)) return;
@@ -162,7 +163,7 @@ function sanitizePackageJson(name, version, saveFlag) {
     if (typeof current === "string" && current.startsWith("file:")) {
       pkgJson[section][name] = version;
     }
-
+    console.log({ pkgJson });
     fs.writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2), "utf-8");
   } catch (err) {
     log.warn(`Could not sanitize package.json (${name}): ${err.message}`);
