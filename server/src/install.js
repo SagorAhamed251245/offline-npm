@@ -89,7 +89,7 @@ function normalizeResolvedUrl(fileUri) {
   const parts = subpath.split("/").filter(Boolean);
 
   // unscoped: name/version/name-version.tgz
-  // scoped: @scope/name/version/name-version.tgz
+  // scoped: @scope/name/version/@scope-name-version.tgz
   let packageName;
   let version;
   if (parts[0].startsWith("@")) {
@@ -102,12 +102,8 @@ function normalizeResolvedUrl(fileUri) {
     version = parts[1];
   }
 
-  const baseName = packageName.includes("/")
-    ? packageName.split("/").pop()
-    : packageName;
-  const tarballName = `${baseName}-${version}.tgz`;
-
-  return `https://registry.npmjs.org/${packageName}/-/${tarballName}`;
+  // Return the proper registry URL format
+  return `https://registry.npmjs.org/${packageName}/-/${packageName.includes("/") ? packageName.split("/").pop() : packageName}-${version}.tgz`;
 }
 
 function normalizeDependency() {}
@@ -160,10 +156,10 @@ function sanitizePackageJson(name, version, saveFlag) {
     if (!pkgJson[section]) pkgJson[section] = {};
 
     const current = pkgJson[section][name];
+    // Replace file: paths with proper semver version format
     if (typeof current === "string" && current.startsWith("file:")) {
-      pkgJson[section][name] = version;
+      pkgJson[section][name] = `^${version}`;
     }
-    console.log({ pkgJson });
     fs.writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2), "utf-8");
   } catch (err) {
     log.warn(`Could not sanitize package.json (${name}): ${err.message}`);

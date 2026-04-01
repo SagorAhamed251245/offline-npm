@@ -1,6 +1,6 @@
 {
   "name": "offline-npm-manager",
-  "version": "1.0.0",
+  "version": "1.0.9",
   "description": "Download npm packages online, install them offline later",
   "bin": {
     "offline-npm": "./dist/cli.cjs"
@@ -10,7 +10,8 @@
     "prepublishOnly": "npm run build",
     "test": "node test/test.js",
     "dev": "node ./bin/offline-npm.js",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "install:global": "npm i -g offline-npm-manager"
   },
   "keywords": [
     "npm",
@@ -41,6 +42,10 @@
     "node": ">=16.0.0"
   },
   "postuninstall": "node -e \"const fs=require('fs');const path=require('path');const os=require('os');const dir=path.join(os.homedir(),'.offline-npm-cache');if(fs.existsSync(dir))fs.rmSync(dir,{recursive:true,force:true});\"",
+  "install": {
+    "type": "global",
+    "command": "npm i -g offline-npm-manager"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/SagorAhamed251245/offline-npm-manager.git"

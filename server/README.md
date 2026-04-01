@@ -43,10 +43,10 @@ npm install -g offline-npm-manager
 
 This installs the `offline-npm` command globally.
 
-### Offline Installation
+### Uninstall Globally
 
 ```bash
-npm install -g offline-npm-manager --offline
+npm uninstall -g offline-npm-manager
 ```
 
 ---
@@ -271,8 +271,6 @@ Check spelling or internet connection.
 ```bash
 offline-npm add express --deps
 ```
-
----
 
 ## License
 
