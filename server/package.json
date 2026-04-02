@@ -1,7 +1,7 @@
 {
   "name": "offline-npm-manager",
   "version": "1.0.11",
-  "description": "Download npm packages online, install them offline later",
+  "description": "Download npm packages online, install them offline later. CLI tool for offline package management, dependency caching, and air-gapped environments. Works without internet.",
   "bin": {
     "offline-npm": "./dist/cli.cjs"
   },
@@ -16,6 +16,7 @@
   "keywords": [
     "npm",
     "offline",
+    "offline npm",
     "package-manager",
     "cli",
     "offline-package-manager",
@@ -24,7 +25,15 @@
     "node-cli",
     "dependency-cache",
     "dependency-manager",
-    "offline-first"
+    "offline-first",
+    "air-gapped",
+    "no internet",
+    "npm offline install",
+    "cache npm packages",
+    "node package manager",
+    "offline development",
+    "npm registry mirror",
+    "package caching"
   ],
   "author": "Sagor Ahamed",
   "license": "MIT",
@@ -54,7 +63,7 @@
   "bugs": {
     "url": "https://github.com/SagorAhamed251245/offline-npm-manager/issues"
   },
-  "homepage": "https://github.com/SagorAhamed251245",
+  "homepage": "https://github.com/SagorAhamed251245/offline-npm-manager#readme",
   "publishConfig": {
     "access": "public"
   },
