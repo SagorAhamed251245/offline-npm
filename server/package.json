@@ -1,6 +1,6 @@
 {
   "name": "offline-npm-manager",
-  "version": "1.0.9",
+  "version": "1.0.11",
   "description": "Download npm packages online, install them offline later",
   "bin": {
     "offline-npm": "./dist/cli.cjs"
@@ -30,7 +30,8 @@
   "license": "MIT",
   "files": [
     "bin",
-    "dist"
+    "dist",
+    "README.md"
   ],
   "dependencies": {
     "commander": "^11.1.0"
