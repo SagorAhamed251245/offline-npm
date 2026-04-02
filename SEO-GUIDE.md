@@ -173,7 +173,7 @@ Add these to your repository:
 **Twitter/X:**
 
 ```
-📦 Just published: offline-npm-manager v1.0.11
+📦 Just published: offline-npm-manager v1.0.12
 
 Download npm packages online, install them offline later!
 

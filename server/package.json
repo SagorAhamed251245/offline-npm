@@ -1,6 +1,6 @@
 {
   "name": "offline-npm-manager",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "📦 Download npm packages online, install them offline later. The #1 CLI tool for offline package management, dependency caching, and air-gapped environments. Works without internet. Perfect for secure networks, enterprise development, and remote work.",
   "bin": {
     "offline-npm": "./dist/cli.cjs"

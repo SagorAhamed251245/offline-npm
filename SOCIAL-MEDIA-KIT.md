@@ -9,7 +9,7 @@ Ready-to-use social media posts for promoting offline-npm-manager.
 ### Post 1: Launch Announcement
 
 ```
-📦 Excited to announce offline-npm-manager v1.0.11!
+📦 Excited to announce offline-npm-manager v1.0.12!
 
 Download npm packages online, install them offline later! ✨
 

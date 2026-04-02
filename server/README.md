@@ -450,7 +450,7 @@ A: Your cached version remains unchanged. Add the package again to cache the new
 
 ## Changelog
 
-### Version 1.0.11 (Latest)
+### Version 1.0.12 (Latest)
 
 - Improved dependency resolution
 - Better error messages
